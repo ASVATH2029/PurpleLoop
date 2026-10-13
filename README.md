@@ -13,7 +13,7 @@ A purple-team detection-engineering demo on AWS: simulate attacker techniques, m
 | Path | Purpose |
 |---|---|
 | `config/` | AWS configuration and environment settings |
-| `nuclei_templates/` | Declarative Nuclei attack templates for AWS threat scenarios |
+| [`nuclei_templates/`](nuclei_templates/README.md) | Declarative Nuclei attack templates for AWS threat scenarios |
 | `simulation/` | Controlled attack scenarios, dry-run synthesizers, and benign activity |
 | `logs/` | Captured/sample CloudTrail logs and test datasets |
 | `detection/` | Baseline detection rules and log-analysis functions |
@@ -23,9 +23,26 @@ A purple-team detection-engineering demo on AWS: simulate attacker techniques, m
 | `dashboard/` | Dashboard and alert display |
 | `main.py` | Pipeline entry point |
 
+## Attack Emulation
+
+Adversary emulation scenarios are defined as declarative YAML templates under [`nuclei_templates/`](nuclei_templates/README.md). These templates cover multi-step AWS attack chains across five MITRE ATT&CK tactics:
+- Privilege Escalation: IAM policy attachment and multi-hop role assumption chains
+- Persistence: Access key creation and serverless Lambda backdoors
+- Credential Access: STS token abuse and wildcard federation policies
+- Exfiltration: S3 bucket policy manipulation and bulk object reads
+- Defense Evasion: CloudTrail logging disruption and trail destruction
+
+For a comprehensive technical walkthrough of each template, the CloudTrail telemetry footprint generated, and the genetic mutation engine, refer to the [Nuclei Templates Guide](nuclei_templates/README.md).
+
+Quick test run (dry-run mode, no AWS credentials required):
+
+```bash
+python simulation/nuclei_runner.py --templates nuclei_templates/ --dry-run --output logs/
+```
+
 ## Status
 
-Scaffolding only — pipeline stages are not yet implemented. All AWS activity is intended to run against a dedicated lab/sandbox account under a scoped `red-team-sim` identity, never production infrastructure.
+Scaffolding and attack simulation runner implemented. All live AWS activity is intended to run against a dedicated lab/sandbox account under a scoped `red-team-sim` identity, never production infrastructure.
 
 ## Setup
 
