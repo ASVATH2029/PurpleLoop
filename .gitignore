@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+*.pem
+*.key
+.aws/
+
+# Raw/large captured logs — keep sample fixtures, ignore bulk dumps
+logs/*.json.gz
+logs/raw/
