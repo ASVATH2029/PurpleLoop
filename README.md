@@ -13,7 +13,8 @@ A purple-team detection-engineering demo on AWS: simulate attacker techniques, m
 | Path | Purpose |
 |---|---|
 | `config/` | AWS configuration and environment settings |
-| `simulation/` | Controlled attack scenarios and benign baseline activity |
+| `nuclei_templates/` | Declarative Nuclei attack templates for AWS threat scenarios |
+| `simulation/` | Controlled attack scenarios, dry-run synthesizers, and benign activity |
 | `logs/` | Captured/sample CloudTrail logs and test datasets |
 | `detection/` | Baseline detection rules and log-analysis functions |
 | `sigma_rules/` | Synthesized Sigma rules that close baseline gaps |
