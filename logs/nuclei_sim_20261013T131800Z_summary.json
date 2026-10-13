@@ -1,0 +1,1144 @@
+{
+  "execution_summary": {
+    "timestamp": "2026-10-13T13:18:00.137678+00:00",
+    "total_templates": 32,
+    "total_events": 397,
+    "templates": [
+      {
+        "template_id": "purpleloop-cloudtrail-stop-logging",
+        "template_name": "CloudTrail Stop Logging \u2014 Defense Evasion via Audit Disruption",
+        "severity": "critical",
+        "mitre_attack": {
+          "tactic": "TA0005 - Defense Evasion",
+          "technique": "T1562.008 - Impair Defenses: Disable or Modify Cloud Logs"
+        },
+        "events_generated": 4,
+        "matcher_results": [
+          {
+            "matcher": "logging-stopped",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 3,
+            "threshold": {}
+          },
+          {
+            "matcher": "full-trail-destruction",
+            "type": "sequence",
+            "triggered": true,
+            "sequence_length": 2,
+            "within_seconds": 120
+          }
+        ],
+        "extracted_values": {
+          "targeted-trail": "arn:aws:cloudtrail:us-east-1:123456789012:trail/management-trail",
+          "tampering-action": "DeleteTrail"
+        },
+        "mutation_info": null
+      },
+      {
+        "template_id": "purpleloop-cloudtrail-stop-logging",
+        "template_name": "CloudTrail Stop Logging \u2014 Defense Evasion via Audit Disruption",
+        "severity": "critical",
+        "mitre_attack": {
+          "tactic": "TA0005 - Defense Evasion",
+          "technique": "T1562.008 - Impair Defenses: Disable or Modify Cloud Logs"
+        },
+        "events_generated": 4,
+        "matcher_results": [
+          {
+            "matcher": "logging-stopped",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 3,
+            "threshold": {}
+          },
+          {
+            "matcher": "full-trail-destruction",
+            "type": "sequence",
+            "triggered": true,
+            "sequence_length": 2,
+            "within_seconds": 120
+          }
+        ],
+        "extracted_values": {
+          "targeted-trail": "arn:aws:cloudtrail:us-east-1:123456789012:trail/management-trail",
+          "tampering-action": "DeleteTrail"
+        },
+        "mutation_info": {
+          "round": 1,
+          "mutated_params": {
+            "delay_seconds": 30,
+            "source_ip": "198.51.100.42",
+            "user_agent": "terraform/1.5.0"
+          },
+          "mutation_id": "2dc912b6"
+        }
+      },
+      {
+        "template_id": "purpleloop-cloudtrail-stop-logging",
+        "template_name": "CloudTrail Stop Logging \u2014 Defense Evasion via Audit Disruption",
+        "severity": "critical",
+        "mitre_attack": {
+          "tactic": "TA0005 - Defense Evasion",
+          "technique": "T1562.008 - Impair Defenses: Disable or Modify Cloud Logs"
+        },
+        "events_generated": 4,
+        "matcher_results": [
+          {
+            "matcher": "logging-stopped",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 3,
+            "threshold": {}
+          },
+          {
+            "matcher": "full-trail-destruction",
+            "type": "sequence",
+            "triggered": true,
+            "sequence_length": 2,
+            "within_seconds": 120
+          }
+        ],
+        "extracted_values": {
+          "targeted-trail": "arn:aws:cloudtrail:us-east-1:123456789012:trail/management-trail",
+          "tampering-action": "DeleteTrail"
+        },
+        "mutation_info": {
+          "round": 2,
+          "mutated_params": {
+            "source_ip": "172.16.0.100",
+            "session_name": "red-team-sim",
+            "delay_seconds": 30
+          },
+          "mutation_id": "af37ab13"
+        }
+      },
+      {
+        "template_id": "purpleloop-cloudtrail-stop-logging",
+        "template_name": "CloudTrail Stop Logging \u2014 Defense Evasion via Audit Disruption",
+        "severity": "critical",
+        "mitre_attack": {
+          "tactic": "TA0005 - Defense Evasion",
+          "technique": "T1562.008 - Impair Defenses: Disable or Modify Cloud Logs"
+        },
+        "events_generated": 4,
+        "matcher_results": [
+          {
+            "matcher": "logging-stopped",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 3,
+            "threshold": {}
+          },
+          {
+            "matcher": "full-trail-destruction",
+            "type": "sequence",
+            "triggered": true,
+            "sequence_length": 2,
+            "within_seconds": 120
+          }
+        ],
+        "extracted_values": {
+          "targeted-trail": "arn:aws:cloudtrail:us-east-1:123456789012:trail/management-trail",
+          "tampering-action": "DeleteTrail"
+        },
+        "mutation_info": {
+          "round": 3,
+          "mutated_params": {
+            "delay_seconds": 60,
+            "session_name": "cloudformation-exec",
+            "source_ip": "203.0.113.10",
+            "user_agent": "aws-sdk-java/2.20.0 Linux/5.15.0"
+          },
+          "mutation_id": "cd9447c3"
+        }
+      },
+      {
+        "template_id": "purpleloop-sts-token-abuse",
+        "template_name": "STS Token Abuse \u2014 Federation Endpoint Exploitation",
+        "severity": "high",
+        "mitre_attack": {
+          "tactic": "TA0006 - Credential Access",
+          "technique": "T1550.001 - Use Alternate Authentication Material: Application Access Token"
+        },
+        "events_generated": 3,
+        "matcher_results": [
+          {
+            "matcher": "federation-token-created",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 2,
+            "threshold": {}
+          },
+          {
+            "matcher": "wildcard-federation-policy",
+            "type": "cloudtrail",
+            "triggered": false,
+            "matched_count": 0,
+            "threshold": {}
+          }
+        ],
+        "extracted_values": {
+          "federation-token-arn": "arn:aws:sts::123456789012:federated-user/backdoor-session",
+          "token-duration": 43200
+        },
+        "mutation_info": null
+      },
+      {
+        "template_id": "purpleloop-sts-token-abuse",
+        "template_name": "STS Token Abuse \u2014 Federation Endpoint Exploitation",
+        "severity": "high",
+        "mitre_attack": {
+          "tactic": "TA0006 - Credential Access",
+          "technique": "T1550.001 - Use Alternate Authentication Material: Application Access Token"
+        },
+        "events_generated": 3,
+        "matcher_results": [
+          {
+            "matcher": "federation-token-created",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 2,
+            "threshold": {}
+          },
+          {
+            "matcher": "wildcard-federation-policy",
+            "type": "cloudtrail",
+            "triggered": false,
+            "matched_count": 0,
+            "threshold": {}
+          }
+        ],
+        "extracted_values": {
+          "federation-token-arn": "arn:aws:sts::123456789012:federated-user/backdoor-session",
+          "token-duration": 43200
+        },
+        "mutation_info": {
+          "round": 1,
+          "mutated_params": {
+            "session_name": "ci-cd-runner",
+            "user_agent": "aws-sdk-java/2.20.0 Linux/5.15.0"
+          },
+          "mutation_id": "c3059498"
+        }
+      },
+      {
+        "template_id": "purpleloop-sts-token-abuse",
+        "template_name": "STS Token Abuse \u2014 Federation Endpoint Exploitation",
+        "severity": "high",
+        "mitre_attack": {
+          "tactic": "TA0006 - Credential Access",
+          "technique": "T1550.001 - Use Alternate Authentication Material: Application Access Token"
+        },
+        "events_generated": 3,
+        "matcher_results": [
+          {
+            "matcher": "federation-token-created",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 2,
+            "threshold": {}
+          },
+          {
+            "matcher": "wildcard-federation-policy",
+            "type": "cloudtrail",
+            "triggered": false,
+            "matched_count": 0,
+            "threshold": {}
+          }
+        ],
+        "extracted_values": {
+          "federation-token-arn": "arn:aws:sts::123456789012:federated-user/backdoor-session",
+          "token-duration": 43200
+        },
+        "mutation_info": {
+          "round": 2,
+          "mutated_params": {
+            "source_ip": "198.51.100.42",
+            "session_name": "deploy-pipeline",
+            "batch_size": 10,
+            "user_agent": "console.amazonaws.com"
+          },
+          "mutation_id": "a90bf6bd"
+        }
+      },
+      {
+        "template_id": "purpleloop-sts-token-abuse",
+        "template_name": "STS Token Abuse \u2014 Federation Endpoint Exploitation",
+        "severity": "high",
+        "mitre_attack": {
+          "tactic": "TA0006 - Credential Access",
+          "technique": "T1550.001 - Use Alternate Authentication Material: Application Access Token"
+        },
+        "events_generated": 3,
+        "matcher_results": [
+          {
+            "matcher": "federation-token-created",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 2,
+            "threshold": {}
+          },
+          {
+            "matcher": "wildcard-federation-policy",
+            "type": "cloudtrail",
+            "triggered": false,
+            "matched_count": 0,
+            "threshold": {}
+          }
+        ],
+        "extracted_values": {
+          "federation-token-arn": "arn:aws:sts::123456789012:federated-user/backdoor-session",
+          "token-duration": 43200
+        },
+        "mutation_info": {
+          "round": 3,
+          "mutated_params": {
+            "batch_size": 5,
+            "user_agent": "aws-sdk-java/2.20.0 Linux/5.15.0",
+            "session_name": "red-team-sim"
+          },
+          "mutation_id": "ff3b5226"
+        }
+      },
+      {
+        "template_id": "purpleloop-iam-access-key-creation",
+        "template_name": "IAM Access Key Creation \u2014 Persistence via Long-Lived Credentials",
+        "severity": "high",
+        "mitre_attack": {
+          "tactic": "TA0003 - Persistence",
+          "technique": "T1098.001 - Account Manipulation: Additional Cloud Credentials"
+        },
+        "events_generated": 2,
+        "matcher_results": [
+          {
+            "matcher": "access-key-created",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 2,
+            "threshold": {}
+          }
+        ],
+        "extracted_values": {
+          "new-access-key-id": "AKIA4D45544152414E44"
+        },
+        "mutation_info": null
+      },
+      {
+        "template_id": "purpleloop-iam-access-key-creation",
+        "template_name": "IAM Access Key Creation \u2014 Persistence via Long-Lived Credentials",
+        "severity": "high",
+        "mitre_attack": {
+          "tactic": "TA0003 - Persistence",
+          "technique": "T1098.001 - Account Manipulation: Additional Cloud Credentials"
+        },
+        "events_generated": 2,
+        "matcher_results": [
+          {
+            "matcher": "access-key-created",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 2,
+            "threshold": {}
+          }
+        ],
+        "extracted_values": {
+          "new-access-key-id": "AKIA4D45544152414E44"
+        },
+        "mutation_info": {
+          "round": 1,
+          "mutated_params": {
+            "delay_seconds": 0,
+            "session_name": "deploy-pipeline",
+            "batch_size": 1
+          },
+          "mutation_id": "cfb5a6ac"
+        }
+      },
+      {
+        "template_id": "purpleloop-iam-access-key-creation",
+        "template_name": "IAM Access Key Creation \u2014 Persistence via Long-Lived Credentials",
+        "severity": "high",
+        "mitre_attack": {
+          "tactic": "TA0003 - Persistence",
+          "technique": "T1098.001 - Account Manipulation: Additional Cloud Credentials"
+        },
+        "events_generated": 2,
+        "matcher_results": [
+          {
+            "matcher": "access-key-created",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 2,
+            "threshold": {}
+          }
+        ],
+        "extracted_values": {
+          "new-access-key-id": "AKIA4D45544152414E44"
+        },
+        "mutation_info": {
+          "round": 2,
+          "mutated_params": {
+            "user_agent": "console.amazonaws.com",
+            "batch_size": 50,
+            "source_ip": "198.51.100.42",
+            "delay_seconds": 60
+          },
+          "mutation_id": "7f7c8519"
+        }
+      },
+      {
+        "template_id": "purpleloop-iam-access-key-creation",
+        "template_name": "IAM Access Key Creation \u2014 Persistence via Long-Lived Credentials",
+        "severity": "high",
+        "mitre_attack": {
+          "tactic": "TA0003 - Persistence",
+          "technique": "T1098.001 - Account Manipulation: Additional Cloud Credentials"
+        },
+        "events_generated": 2,
+        "matcher_results": [
+          {
+            "matcher": "access-key-created",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 2,
+            "threshold": {}
+          }
+        ],
+        "extracted_values": {
+          "new-access-key-id": "AKIA4D45544152414E44"
+        },
+        "mutation_info": {
+          "round": 3,
+          "mutated_params": {
+            "user_agent": "Mozilla/5.0 (compatible; aws-sdk-go/1.44.0)",
+            "batch_size": 1,
+            "source_ip": "10.0.0.50",
+            "delay_seconds": 10
+          },
+          "mutation_id": "fcda656b"
+        }
+      },
+      {
+        "template_id": "purpleloop-iam-admin-policy-attachment",
+        "template_name": "IAM Admin Policy Attachment \u2014 Privilege Escalation",
+        "severity": "critical",
+        "mitre_attack": {
+          "tactic": "TA0004 - Privilege Escalation",
+          "technique": "T1098.001 - Account Manipulation: Additional Cloud Credentials"
+        },
+        "events_generated": 3,
+        "matcher_results": [
+          {
+            "matcher": "admin-policy-attached",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 1,
+            "threshold": {}
+          }
+        ],
+        "extracted_values": {
+          "escalated-user": "red-team-sim",
+          "policy-attached": "arn:aws:iam::aws:policy/AdministratorAccess"
+        },
+        "mutation_info": null
+      },
+      {
+        "template_id": "purpleloop-iam-admin-policy-attachment",
+        "template_name": "IAM Admin Policy Attachment \u2014 Privilege Escalation",
+        "severity": "critical",
+        "mitre_attack": {
+          "tactic": "TA0004 - Privilege Escalation",
+          "technique": "T1098.001 - Account Manipulation: Additional Cloud Credentials"
+        },
+        "events_generated": 3,
+        "matcher_results": [
+          {
+            "matcher": "admin-policy-attached",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 1,
+            "threshold": {}
+          }
+        ],
+        "extracted_values": {
+          "escalated-user": "deploy-pipeline",
+          "policy-attached": "arn:aws:iam::aws:policy/AdministratorAccess"
+        },
+        "mutation_info": {
+          "round": 1,
+          "mutated_params": {
+            "session_name": "deploy-pipeline",
+            "batch_size": 5,
+            "delay_seconds": 1,
+            "source_ip": "172.16.0.100"
+          },
+          "mutation_id": "f969f4e5"
+        }
+      },
+      {
+        "template_id": "purpleloop-iam-admin-policy-attachment",
+        "template_name": "IAM Admin Policy Attachment \u2014 Privilege Escalation",
+        "severity": "critical",
+        "mitre_attack": {
+          "tactic": "TA0004 - Privilege Escalation",
+          "technique": "T1098.001 - Account Manipulation: Additional Cloud Credentials"
+        },
+        "events_generated": 3,
+        "matcher_results": [
+          {
+            "matcher": "admin-policy-attached",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 1,
+            "threshold": {}
+          }
+        ],
+        "extracted_values": {
+          "escalated-user": "deploy-pipeline",
+          "policy-attached": "arn:aws:iam::aws:policy/AdministratorAccess"
+        },
+        "mutation_info": {
+          "round": 2,
+          "mutated_params": {
+            "delay_seconds": 2,
+            "session_name": "deploy-pipeline",
+            "user_agent": "Mozilla/5.0 (compatible; aws-sdk-go/1.44.0)"
+          },
+          "mutation_id": "72184676"
+        }
+      },
+      {
+        "template_id": "purpleloop-iam-admin-policy-attachment",
+        "template_name": "IAM Admin Policy Attachment \u2014 Privilege Escalation",
+        "severity": "critical",
+        "mitre_attack": {
+          "tactic": "TA0004 - Privilege Escalation",
+          "technique": "T1098.001 - Account Manipulation: Additional Cloud Credentials"
+        },
+        "events_generated": 3,
+        "matcher_results": [
+          {
+            "matcher": "admin-policy-attached",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 1,
+            "threshold": {}
+          }
+        ],
+        "extracted_values": {
+          "escalated-user": "ci-cd-runner",
+          "policy-attached": "arn:aws:iam::aws:policy/AdministratorAccess"
+        },
+        "mutation_info": {
+          "round": 3,
+          "mutated_params": {
+            "delay_seconds": 120,
+            "batch_size": 25,
+            "session_name": "ci-cd-runner",
+            "source_ip": "198.51.100.42"
+          },
+          "mutation_id": "9b833cd8"
+        }
+      },
+      {
+        "template_id": "purpleloop-iam-role-assumption-chain",
+        "template_name": "IAM Role Assumption Chain \u2014 Cross-Account Lateral Movement",
+        "severity": "high",
+        "mitre_attack": {
+          "tactic": "TA0004 - Privilege Escalation",
+          "technique": "T1550.001 - Use Alternate Authentication Material: Application Access Token"
+        },
+        "events_generated": 3,
+        "matcher_results": [
+          {
+            "matcher": "role-chain-detected",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 1,
+            "threshold": {}
+          },
+          {
+            "matcher": "multi-hop-assumption",
+            "type": "sequence",
+            "triggered": true,
+            "sequence_length": 2,
+            "within_seconds": 300
+          }
+        ],
+        "extracted_values": {
+          "assumed-role-arn": "arn:aws:iam::123456789012:role/admin-operations",
+          "session-name": "red-team-sim-hop2"
+        },
+        "mutation_info": null
+      },
+      {
+        "template_id": "purpleloop-iam-role-assumption-chain",
+        "template_name": "IAM Role Assumption Chain \u2014 Cross-Account Lateral Movement",
+        "severity": "high",
+        "mitre_attack": {
+          "tactic": "TA0004 - Privilege Escalation",
+          "technique": "T1550.001 - Use Alternate Authentication Material: Application Access Token"
+        },
+        "events_generated": 3,
+        "matcher_results": [
+          {
+            "matcher": "role-chain-detected",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 1,
+            "threshold": {}
+          },
+          {
+            "matcher": "multi-hop-assumption",
+            "type": "sequence",
+            "triggered": true,
+            "sequence_length": 2,
+            "within_seconds": 300
+          }
+        ],
+        "extracted_values": {
+          "assumed-role-arn": "arn:aws:iam::123456789012:role/admin-operations",
+          "session-name": "red-team-sim-hop2"
+        },
+        "mutation_info": {
+          "round": 1,
+          "mutated_params": {
+            "batch_size": 10,
+            "source_ip": "203.0.113.10",
+            "delay_seconds": 2
+          },
+          "mutation_id": "bf263cc7"
+        }
+      },
+      {
+        "template_id": "purpleloop-iam-role-assumption-chain",
+        "template_name": "IAM Role Assumption Chain \u2014 Cross-Account Lateral Movement",
+        "severity": "high",
+        "mitre_attack": {
+          "tactic": "TA0004 - Privilege Escalation",
+          "technique": "T1550.001 - Use Alternate Authentication Material: Application Access Token"
+        },
+        "events_generated": 3,
+        "matcher_results": [
+          {
+            "matcher": "role-chain-detected",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 1,
+            "threshold": {}
+          },
+          {
+            "matcher": "multi-hop-assumption",
+            "type": "sequence",
+            "triggered": true,
+            "sequence_length": 2,
+            "within_seconds": 300
+          }
+        ],
+        "extracted_values": {
+          "assumed-role-arn": "arn:aws:iam::123456789012:role/admin-operations",
+          "session-name": "backup-job-hop2"
+        },
+        "mutation_info": {
+          "round": 2,
+          "mutated_params": {
+            "session_name": "backup-job",
+            "delay_seconds": 10,
+            "batch_size": 50,
+            "source_ip": "192.168.1.1"
+          },
+          "mutation_id": "a569caf2"
+        }
+      },
+      {
+        "template_id": "purpleloop-iam-role-assumption-chain",
+        "template_name": "IAM Role Assumption Chain \u2014 Cross-Account Lateral Movement",
+        "severity": "high",
+        "mitre_attack": {
+          "tactic": "TA0004 - Privilege Escalation",
+          "technique": "T1550.001 - Use Alternate Authentication Material: Application Access Token"
+        },
+        "events_generated": 3,
+        "matcher_results": [
+          {
+            "matcher": "role-chain-detected",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 1,
+            "threshold": {}
+          },
+          {
+            "matcher": "multi-hop-assumption",
+            "type": "sequence",
+            "triggered": true,
+            "sequence_length": 2,
+            "within_seconds": 300
+          }
+        ],
+        "extracted_values": {
+          "assumed-role-arn": "arn:aws:iam::123456789012:role/admin-operations",
+          "session-name": "monitoring-svc-hop2"
+        },
+        "mutation_info": {
+          "round": 3,
+          "mutated_params": {
+            "user_agent": "terraform/1.5.0",
+            "session_name": "monitoring-svc"
+          },
+          "mutation_id": "0d9ca462"
+        }
+      },
+      {
+        "template_id": "purpleloop-lambda-backdoor-function",
+        "template_name": "Lambda Backdoor Function \u2014 Serverless Persistence",
+        "severity": "critical",
+        "mitre_attack": {
+          "tactic": "TA0003 - Persistence",
+          "technique": "T1525 - Implant Internal Image"
+        },
+        "events_generated": 5,
+        "matcher_results": [
+          {
+            "matcher": "lambda-backdoor-deployed",
+            "type": "sequence",
+            "triggered": true,
+            "sequence_length": 4,
+            "within_seconds": 300
+          },
+          {
+            "matcher": "admin-lambda-role",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 1,
+            "threshold": {}
+          }
+        ],
+        "extracted_values": {
+          "backdoor-function-name": "cloudwatch-log-processor",
+          "backdoor-role": "lambda-monitoring-role"
+        },
+        "mutation_info": null
+      },
+      {
+        "template_id": "purpleloop-lambda-backdoor-function",
+        "template_name": "Lambda Backdoor Function \u2014 Serverless Persistence",
+        "severity": "critical",
+        "mitre_attack": {
+          "tactic": "TA0003 - Persistence",
+          "technique": "T1525 - Implant Internal Image"
+        },
+        "events_generated": 5,
+        "matcher_results": [
+          {
+            "matcher": "lambda-backdoor-deployed",
+            "type": "sequence",
+            "triggered": true,
+            "sequence_length": 4,
+            "within_seconds": 300
+          },
+          {
+            "matcher": "admin-lambda-role",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 1,
+            "threshold": {}
+          }
+        ],
+        "extracted_values": {
+          "backdoor-function-name": "cloudwatch-log-processor",
+          "backdoor-role": "lambda-monitoring-role"
+        },
+        "mutation_info": {
+          "round": 1,
+          "mutated_params": {
+            "user_agent": "Boto3/1.28.0 Python/3.11.6",
+            "delay_seconds": 5,
+            "source_ip": "10.0.0.50"
+          },
+          "mutation_id": "1e08fa04"
+        }
+      },
+      {
+        "template_id": "purpleloop-lambda-backdoor-function",
+        "template_name": "Lambda Backdoor Function \u2014 Serverless Persistence",
+        "severity": "critical",
+        "mitre_attack": {
+          "tactic": "TA0003 - Persistence",
+          "technique": "T1525 - Implant Internal Image"
+        },
+        "events_generated": 5,
+        "matcher_results": [
+          {
+            "matcher": "lambda-backdoor-deployed",
+            "type": "sequence",
+            "triggered": true,
+            "sequence_length": 4,
+            "within_seconds": 300
+          },
+          {
+            "matcher": "admin-lambda-role",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 1,
+            "threshold": {}
+          }
+        ],
+        "extracted_values": {
+          "backdoor-function-name": "cloudwatch-log-processor",
+          "backdoor-role": "lambda-monitoring-role"
+        },
+        "mutation_info": {
+          "round": 2,
+          "mutated_params": {
+            "source_ip": "203.0.113.10",
+            "delay_seconds": 0,
+            "session_name": "red-team-sim",
+            "user_agent": "aws-cli/2.15.0 Python/3.11.6 Linux/5.15.0"
+          },
+          "mutation_id": "b8d3fdb6"
+        }
+      },
+      {
+        "template_id": "purpleloop-lambda-backdoor-function",
+        "template_name": "Lambda Backdoor Function \u2014 Serverless Persistence",
+        "severity": "critical",
+        "mitre_attack": {
+          "tactic": "TA0003 - Persistence",
+          "technique": "T1525 - Implant Internal Image"
+        },
+        "events_generated": 5,
+        "matcher_results": [
+          {
+            "matcher": "lambda-backdoor-deployed",
+            "type": "sequence",
+            "triggered": true,
+            "sequence_length": 4,
+            "within_seconds": 300
+          },
+          {
+            "matcher": "admin-lambda-role",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 1,
+            "threshold": {}
+          }
+        ],
+        "extracted_values": {
+          "backdoor-function-name": "cloudwatch-log-processor",
+          "backdoor-role": "lambda-monitoring-role"
+        },
+        "mutation_info": {
+          "round": 3,
+          "mutated_params": {
+            "batch_size": 25,
+            "user_agent": "Mozilla/5.0 (compatible; aws-sdk-go/1.44.0)",
+            "source_ip": "172.16.0.100"
+          },
+          "mutation_id": "2cd09b04"
+        }
+      },
+      {
+        "template_id": "purpleloop-s3-bucket-policy-backdoor",
+        "template_name": "S3 Bucket Policy Backdoor \u2014 Open Bucket for External Access",
+        "severity": "critical",
+        "mitre_attack": {
+          "tactic": "TA0010 - Exfiltration",
+          "technique": "T1537 - Transfer Data to Cloud Account"
+        },
+        "events_generated": 2,
+        "matcher_results": [
+          {
+            "matcher": "bucket-policy-modified",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 1,
+            "threshold": {}
+          },
+          {
+            "matcher": "external-principal-added",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 1,
+            "threshold": {}
+          }
+        ],
+        "extracted_values": {
+          "backdoored-bucket": "company-sensitive-data"
+        },
+        "mutation_info": null
+      },
+      {
+        "template_id": "purpleloop-s3-bucket-policy-backdoor",
+        "template_name": "S3 Bucket Policy Backdoor \u2014 Open Bucket for External Access",
+        "severity": "critical",
+        "mitre_attack": {
+          "tactic": "TA0010 - Exfiltration",
+          "technique": "T1537 - Transfer Data to Cloud Account"
+        },
+        "events_generated": 2,
+        "matcher_results": [
+          {
+            "matcher": "bucket-policy-modified",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 1,
+            "threshold": {}
+          },
+          {
+            "matcher": "external-principal-added",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 1,
+            "threshold": {}
+          }
+        ],
+        "extracted_values": {
+          "backdoored-bucket": "company-sensitive-data"
+        },
+        "mutation_info": {
+          "round": 1,
+          "mutated_params": {
+            "session_name": "cloudformation-exec",
+            "source_ip": "10.0.0.50",
+            "delay_seconds": 1,
+            "batch_size": 10
+          },
+          "mutation_id": "d0e4934b"
+        }
+      },
+      {
+        "template_id": "purpleloop-s3-bucket-policy-backdoor",
+        "template_name": "S3 Bucket Policy Backdoor \u2014 Open Bucket for External Access",
+        "severity": "critical",
+        "mitre_attack": {
+          "tactic": "TA0010 - Exfiltration",
+          "technique": "T1537 - Transfer Data to Cloud Account"
+        },
+        "events_generated": 2,
+        "matcher_results": [
+          {
+            "matcher": "bucket-policy-modified",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 1,
+            "threshold": {}
+          },
+          {
+            "matcher": "external-principal-added",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 1,
+            "threshold": {}
+          }
+        ],
+        "extracted_values": {
+          "backdoored-bucket": "company-sensitive-data"
+        },
+        "mutation_info": {
+          "round": 2,
+          "mutated_params": {
+            "delay_seconds": 0,
+            "user_agent": "Boto3/1.28.0 Python/3.11.6",
+            "session_name": "cloudformation-exec"
+          },
+          "mutation_id": "6e081989"
+        }
+      },
+      {
+        "template_id": "purpleloop-s3-bucket-policy-backdoor",
+        "template_name": "S3 Bucket Policy Backdoor \u2014 Open Bucket for External Access",
+        "severity": "critical",
+        "mitre_attack": {
+          "tactic": "TA0010 - Exfiltration",
+          "technique": "T1537 - Transfer Data to Cloud Account"
+        },
+        "events_generated": 2,
+        "matcher_results": [
+          {
+            "matcher": "bucket-policy-modified",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 1,
+            "threshold": {}
+          },
+          {
+            "matcher": "external-principal-added",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 1,
+            "threshold": {}
+          }
+        ],
+        "extracted_values": {
+          "backdoored-bucket": "company-sensitive-data"
+        },
+        "mutation_info": {
+          "round": 3,
+          "mutated_params": {
+            "user_agent": "terraform/1.5.0",
+            "session_name": "cloudformation-exec",
+            "delay_seconds": 10,
+            "source_ip": "172.16.0.100"
+          },
+          "mutation_id": "5913cd1d"
+        }
+      },
+      {
+        "template_id": "purpleloop-s3-bulk-object-exfiltration",
+        "template_name": "S3 Bulk Object Exfiltration \u2014 Data Theft via Burst GetObject",
+        "severity": "critical",
+        "mitre_attack": {
+          "tactic": "TA0010 - Exfiltration",
+          "technique": "T1530 - Data from Cloud Storage"
+        },
+        "events_generated": 102,
+        "matcher_results": [
+          {
+            "matcher": "s3-burst-read",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 100,
+            "threshold": {
+              "count": 50,
+              "window": 60
+            }
+          },
+          {
+            "matcher": "cross-bucket-copy",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 1,
+            "threshold": {}
+          }
+        ],
+        "extracted_values": {
+          "exfil-target-bucket": "attacker-staging-bucket"
+        },
+        "mutation_info": null
+      },
+      {
+        "template_id": "purpleloop-s3-bulk-object-exfiltration",
+        "template_name": "S3 Bulk Object Exfiltration \u2014 Data Theft via Burst GetObject",
+        "severity": "critical",
+        "mitre_attack": {
+          "tactic": "TA0010 - Exfiltration",
+          "technique": "T1530 - Data from Cloud Storage"
+        },
+        "events_generated": 102,
+        "matcher_results": [
+          {
+            "matcher": "s3-burst-read",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 100,
+            "threshold": {
+              "count": 50,
+              "window": 60
+            }
+          },
+          {
+            "matcher": "cross-bucket-copy",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 1,
+            "threshold": {}
+          }
+        ],
+        "extracted_values": {
+          "exfil-target-bucket": "attacker-staging-bucket"
+        },
+        "mutation_info": {
+          "round": 1,
+          "mutated_params": {
+            "delay_seconds": 60,
+            "source_ip": "203.0.113.10",
+            "batch_size": 100
+          },
+          "mutation_id": "a567acf0"
+        }
+      },
+      {
+        "template_id": "purpleloop-s3-bulk-object-exfiltration",
+        "template_name": "S3 Bulk Object Exfiltration \u2014 Data Theft via Burst GetObject",
+        "severity": "critical",
+        "mitre_attack": {
+          "tactic": "TA0010 - Exfiltration",
+          "technique": "T1530 - Data from Cloud Storage"
+        },
+        "events_generated": 3,
+        "matcher_results": [
+          {
+            "matcher": "s3-burst-read",
+            "type": "cloudtrail",
+            "triggered": false,
+            "matched_count": 1,
+            "threshold": {
+              "count": 50,
+              "window": 60
+            }
+          },
+          {
+            "matcher": "cross-bucket-copy",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 1,
+            "threshold": {}
+          }
+        ],
+        "extracted_values": {
+          "exfil-target-bucket": "attacker-staging-bucket"
+        },
+        "mutation_info": {
+          "round": 2,
+          "mutated_params": {
+            "source_ip": "203.0.113.10",
+            "delay_seconds": 30,
+            "batch_size": 1
+          },
+          "mutation_id": "43c6e077"
+        }
+      },
+      {
+        "template_id": "purpleloop-s3-bulk-object-exfiltration",
+        "template_name": "S3 Bulk Object Exfiltration \u2014 Data Theft via Burst GetObject",
+        "severity": "critical",
+        "mitre_attack": {
+          "tactic": "TA0010 - Exfiltration",
+          "technique": "T1530 - Data from Cloud Storage"
+        },
+        "events_generated": 102,
+        "matcher_results": [
+          {
+            "matcher": "s3-burst-read",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 100,
+            "threshold": {
+              "count": 50,
+              "window": 60
+            }
+          },
+          {
+            "matcher": "cross-bucket-copy",
+            "type": "cloudtrail",
+            "triggered": true,
+            "matched_count": 1,
+            "threshold": {}
+          }
+        ],
+        "extracted_values": {
+          "exfil-target-bucket": "attacker-staging-bucket"
+        },
+        "mutation_info": {
+          "round": 3,
+          "mutated_params": {
+            "delay_seconds": 10,
+            "user_agent": "terraform/1.5.0"
+          },
+          "mutation_id": "b0ede32f"
+        }
+      }
+    ]
+  }
+}

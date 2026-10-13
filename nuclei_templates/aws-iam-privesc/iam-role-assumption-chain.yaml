@@ -1,0 +1,109 @@
+id: purpleloop-iam-role-assumption-chain
+
+info:
+  name: IAM Role Assumption Chain — Cross-Account Lateral Movement
+  author: PurpleLoop
+  severity: high
+  description: |
+    Simulates an attacker chaining AssumeRole calls to pivot from a low-privilege
+    role in one account into a high-privilege role in a target account.  This
+    multi-hop pattern is common in real breaches where trust policies are overly
+    permissive.
+  reference:
+    - https://attack.mitre.org/techniques/T1550/001/
+    - https://attack.mitre.org/techniques/T1078/004/
+  tags: aws,iam,sts,lateral-movement,privilege-escalation,cloudtrail
+  metadata:
+    mitre_attack:
+      tactic: "TA0004 - Privilege Escalation"
+      technique: "T1550.001 - Use Alternate Authentication Material: Application Access Token"
+    purpleloop:
+      attack_chain: iam-privesc
+      variant: role-chain
+      severity_score: 8.5
+
+attack:
+  type: aws-api
+  steps:
+    # Step 1 — Initial AssumeRole into a staging role
+    - action: sts:AssumeRole
+      description: Assume an intermediate staging role using compromised credentials
+      parameters:
+        RoleArn: "arn:aws:iam::{{target_account}}:role/staging-deploy"
+        RoleSessionName: "{{session_name}}-hop1"
+        DurationSeconds: 3600
+      delay: "{{delay_seconds}}"
+      cloudtrail_event:
+        eventName: AssumeRole
+        eventSource: sts.amazonaws.com
+        sourceIPAddress: "{{source_ip}}"
+        userAgent: "{{user_agent}}"
+        requestParameters:
+          roleArn: "arn:aws:iam::{{target_account}}:role/staging-deploy"
+          roleSessionName: "{{session_name}}-hop1"
+          durationSeconds: 3600
+
+    # Step 2 — Pivot to high-privilege role
+    - action: sts:AssumeRole
+      description: Chain into admin role from the staging role
+      parameters:
+        RoleArn: "arn:aws:iam::{{target_account}}:role/admin-operations"
+        RoleSessionName: "{{session_name}}-hop2"
+        DurationSeconds: 3600
+      delay: "{{delay_seconds}}"
+      cloudtrail_event:
+        eventName: AssumeRole
+        eventSource: sts.amazonaws.com
+        sourceIPAddress: "{{source_ip}}"
+        userAgent: "{{user_agent}}"
+        userIdentity:
+          type: AssumedRole
+          arn: "arn:aws:sts::{{target_account}}:assumed-role/staging-deploy/{{session_name}}-hop1"
+        requestParameters:
+          roleArn: "arn:aws:iam::{{target_account}}:role/admin-operations"
+          roleSessionName: "{{session_name}}-hop2"
+
+    # Step 3 — Validate escalated access
+    - action: iam:ListUsers
+      description: Enumerate all IAM users using escalated admin role
+      parameters: {}
+      delay: "{{delay_seconds}}"
+      cloudtrail_event:
+        eventName: ListUsers
+        eventSource: iam.amazonaws.com
+        sourceIPAddress: "{{source_ip}}"
+        userAgent: "{{user_agent}}"
+        userIdentity:
+          type: AssumedRole
+          arn: "arn:aws:sts::{{target_account}}:assumed-role/admin-operations/{{session_name}}-hop2"
+
+matchers:
+  - type: cloudtrail
+    name: role-chain-detected
+    condition: and
+    fields:
+      - eventName == "AssumeRole"
+      - requestParameters.roleSessionName contains "hop2"
+  - type: sequence
+    name: multi-hop-assumption
+    events:
+      - eventName == "AssumeRole" && requestParameters.roleSessionName contains "hop1"
+      - eventName == "AssumeRole" && requestParameters.roleSessionName contains "hop2"
+    within: 300  # seconds
+
+extractors:
+  - type: json
+    name: assumed-role-arn
+    json:
+      - ".requestParameters.roleArn"
+  - type: json
+    name: session-name
+    json:
+      - ".requestParameters.roleSessionName"
+
+variables:
+  delay_seconds: "5"
+  source_ip: "198.51.100.42"
+  user_agent: "aws-cli/2.15.0 Python/3.11.6 Linux/5.15.0"
+  session_name: "red-team-sim"
+  target_account: "123456789012"

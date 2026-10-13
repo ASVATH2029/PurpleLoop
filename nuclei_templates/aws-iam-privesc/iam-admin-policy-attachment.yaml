@@ -1,0 +1,108 @@
+id: purpleloop-iam-admin-policy-attachment
+
+info:
+  name: IAM Admin Policy Attachment — Privilege Escalation
+  author: PurpleLoop
+  severity: critical
+  description: |
+    Simulates an attacker attaching the AdministratorAccess managed policy to a
+    compromised IAM user, escalating from limited read-only permissions to full
+    admin.  Maps to real-world incidents where leaked credentials are used to
+    self-escalate before lateral movement.
+  reference:
+    - https://attack.mitre.org/techniques/T1098/001/
+    - https://rhinosecuritylabs.com/aws/aws-privilege-escalation-methods-mitigation/
+  tags: aws,iam,privilege-escalation,cloudtrail
+  metadata:
+    mitre_attack:
+      tactic: "TA0004 - Privilege Escalation"
+      technique: "T1098.001 - Account Manipulation: Additional Cloud Credentials"
+    purpleloop:
+      attack_chain: iam-privesc
+      variant: baseline
+      severity_score: 9.5
+
+# ---------------------------------------------------------------------------
+# Attack flow: 3-step IAM privilege escalation
+# ---------------------------------------------------------------------------
+attack:
+  type: aws-api
+  steps:
+    # Step 1 — Enumerate current permissions (reconnaissance)
+    - action: iam:GetUser
+      description: Attacker enumerates own identity to confirm compromised principal
+      parameters:
+        UserName: "{{session_name}}"
+      delay: "{{delay_seconds}}"
+      cloudtrail_event:
+        eventName: GetUser
+        eventSource: iam.amazonaws.com
+        sourceIPAddress: "{{source_ip}}"
+        userAgent: "{{user_agent}}"
+        userIdentity:
+          type: IAMUser
+          userName: "{{session_name}}"
+          arn: "arn:aws:iam::{{target_account}}:user/{{session_name}}"
+
+    # Step 2 — List attached policies (confirm low privilege)
+    - action: iam:ListAttachedUserPolicies
+      description: Check existing policies to identify escalation opportunity
+      parameters:
+        UserName: "{{session_name}}"
+      delay: "{{delay_seconds}}"
+      cloudtrail_event:
+        eventName: ListAttachedUserPolicies
+        eventSource: iam.amazonaws.com
+        sourceIPAddress: "{{source_ip}}"
+        userAgent: "{{user_agent}}"
+        requestParameters:
+          userName: "{{session_name}}"
+
+    # Step 3 — Attach AdministratorAccess (the escalation)
+    - action: iam:AttachUserPolicy
+      description: Attach full admin policy — this is the critical escalation event
+      parameters:
+        UserName: "{{session_name}}"
+        PolicyArn: "arn:aws:iam::aws:policy/AdministratorAccess"
+      delay: "{{delay_seconds}}"
+      cloudtrail_event:
+        eventName: AttachUserPolicy
+        eventSource: iam.amazonaws.com
+        sourceIPAddress: "{{source_ip}}"
+        userAgent: "{{user_agent}}"
+        requestParameters:
+          userName: "{{session_name}}"
+          policyArn: "arn:aws:iam::aws:policy/AdministratorAccess"
+        responseElements: null
+
+# ---------------------------------------------------------------------------
+# Detection matchers — what a successful attack looks like in logs
+# ---------------------------------------------------------------------------
+matchers:
+  - type: cloudtrail
+    name: admin-policy-attached
+    condition: and
+    fields:
+      - eventName == "AttachUserPolicy"
+      - requestParameters.policyArn contains "AdministratorAccess"
+
+extractors:
+  - type: json
+    name: escalated-user
+    json:
+      - ".requestParameters.userName"
+  - type: json
+    name: policy-attached
+    json:
+      - ".requestParameters.policyArn"
+
+# ---------------------------------------------------------------------------
+# Variables (overridable by mutation engine)
+# ---------------------------------------------------------------------------
+variables:
+  delay_seconds: "0"
+  batch_size: "1"
+  source_ip: "198.51.100.42"
+  user_agent: "aws-cli/2.15.0 Python/3.11.6 Linux/5.15.0"
+  session_name: "red-team-sim"
+  target_account: "123456789012"

